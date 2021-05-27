@@ -48,7 +48,7 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
             ...
         labels(list)
     '''
-    event2semantic_vec = read_json(data_dir + 'hdfs/event2semantic_vec.json')
+    event2semantic_vec = read_json(data_dir + 'bgl/bgl_embeddings.json')
     num_sessions = 0
     result_logs = {}
     result_logs['Sequentials'] = []

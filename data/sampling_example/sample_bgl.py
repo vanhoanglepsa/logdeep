@@ -70,6 +70,8 @@ def bgl_sampling(bgl_structured, phase="train"):
     for i in range(inst_number):
         start_index = start_end_index_list[i][0]
         end_index = start_end_index_list[i][1]
+        if start_index > end_index:
+            continue
         for l in range(start_index, end_index):
             expanded_indexes_list[i].append(l)
             expanded_event_list[i].append(event_mapping_data[l])
@@ -123,7 +125,9 @@ if __name__ == "__main__":
             if log['label'] == 1:
                 continue
             
-            log = log.split()
+            log = log['sequence']
+            if len(log) == 0:
+                continue
             seq = [ids_map[x] for x in log]
             seq = " ".join(seq)
             f.write(seq + "\n")
