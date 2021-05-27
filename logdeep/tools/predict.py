@@ -50,6 +50,7 @@ class Predicter():
         self.quantitatives = options['quantitatives']
         self.semantics = options['semantics']
         self.batch_size = options['batch_size']
+        self.sequence_length = options['sequence_length']
 
     def predict_unsupervised(self):
         model = self.model.to(self.device)
@@ -68,7 +69,7 @@ class Predicter():
                 for i in range(len(line) - self.window_size):
                     seq0 = line[i:i + self.window_size]
                     label = line[i + self.window_size]
-                    seq1 = [0] * 28
+                    seq1 = [0] * self.sequence_length
                     log_conuter = Counter(seq0)
                     for key in log_conuter:
                         seq1[key] = log_conuter[key]
@@ -89,7 +90,7 @@ class Predicter():
                 for i in range(len(line) - self.window_size):
                     seq0 = line[i:i + self.window_size]
                     label = line[i + self.window_size]
-                    seq1 = [0] * 28
+                    seq1 = [0] * self.sequence_length
                     log_conuter = Counter(seq0)
                     for key in log_conuter:
                         seq1[key] = log_conuter[key]

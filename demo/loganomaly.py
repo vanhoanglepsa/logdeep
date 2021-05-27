@@ -33,7 +33,8 @@ options['feature_num'] = sum(
 options['input_size'] = 1
 options['hidden_size'] = 64
 options['num_layers'] = 2
-options['num_classes'] = 28
+options['num_classes'] = 384
+options['sequence_length'] = 384
 
 # Train
 options['batch_size'] = 2048
@@ -60,7 +61,8 @@ def train():
     Model = loganomaly(input_size=options['input_size'],
                        hidden_size=options['hidden_size'],
                        num_layers=options['num_layers'],
-                       num_keys=options['num_classes'])
+                       num_keys=options['num_classes'],
+                       seq_len=options['sequence_length'])
     trainer = Trainer(Model, options)
     trainer.start_train()
 
@@ -69,7 +71,8 @@ def predict():
     Model = loganomaly(input_size=options['input_size'],
                        hidden_size=options['hidden_size'],
                        num_layers=options['num_layers'],
-                       num_keys=options['num_classes'])
+                       num_keys=options['num_classes'],
+                       seq_len=options['sequence_length'])
     predicter = Predicter(Model, options)
     predicter.predict_unsupervised()
 

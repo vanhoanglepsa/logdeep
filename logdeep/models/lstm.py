@@ -26,7 +26,7 @@ class deeplog(nn.Module):
 
 
 class loganomaly(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, num_keys):
+    def __init__(self, input_size, hidden_size, num_layers, num_keys, seq_len=28):
         super(loganomaly, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -45,7 +45,7 @@ class loganomaly(nn.Module):
             torch.zeros(self.hidden_size, self.attention_size))
         self.u_omega = Variable(torch.zeros(self.attention_size))
 
-        self.sequence_length = 28
+        self.sequence_length = seq_len
 
     def attention_net(self, lstm_output):
         output_reshape = torch.Tensor.reshape(lstm_output,

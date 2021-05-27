@@ -56,7 +56,7 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
     result_logs['Semantics'] = []
     labels = []
     if datatype == 'train':
-        data_dir += 'hdfs/hdfs_train'
+        data_dir += 'bgl/bgl_train'
     if datatype == 'val':
         data_dir += 'hdfs/hdfs_test_normal'
 
@@ -67,7 +67,7 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
 
             for i in range(len(line) - window_size):
                 Sequential_pattern = list(line[i:i + window_size])
-                Quantitative_pattern = [0] * 28
+                Quantitative_pattern = [0] * 384
                 log_counter = Counter(Sequential_pattern)
 
                 for key in log_counter:
