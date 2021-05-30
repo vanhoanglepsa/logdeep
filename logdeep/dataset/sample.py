@@ -81,10 +81,10 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
                     Quantitative_pattern[key] = log_counter[key]
                 Semantic_pattern = []
                 for event in Sequential_pattern:
-                    # if event == 0:
-                    #     Semantic_pattern.append([-1] * 300)
-                    # else:
-                    Semantic_pattern.append(event2semantic_vec[str(event)])
+                    if event < 0:
+                        Semantic_pattern.append([-1] * 300)
+                    else:
+                        Semantic_pattern.append(event2semantic_vec[str(event)])
                 Sequential_pattern = np.array(Sequential_pattern)[:,
                                                                   np.newaxis]
                 Quantitative_pattern = np.array(
