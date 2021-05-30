@@ -15,17 +15,17 @@ from logdeep.tools.utils import *
 
 options = dict()
 options['data_dir'] = '../data/'
-options['window_size'] = 10
-options['device'] = "cpu"
+options['window_size'] = 20
+options['device'] = "cuda"
 
 # Smaple
 options['sample'] = "sliding_window"
-options['window_size'] = 10  # if fix_window
+options['window_size'] = 20  # if fix_window
 
 # Features
 options['sequentials'] = True
 options['quantitatives'] = True
-options['semantics'] = False
+options['semantics'] = True
 options['feature_num'] = sum(
     [options['sequentials'], options['quantitatives'], options['semantics']])
 
@@ -37,12 +37,12 @@ options['num_classes'] = 384
 options['sequence_length'] = 384
 
 # Train
-options['batch_size'] = 2048
+options['batch_size'] = 6144
 options['accumulation_step'] = 1
 
 options['optimizer'] = 'adam'
 options['lr'] = 0.001
-options['max_epoch'] = 370
+options['max_epoch'] = 100
 options['lr_step'] = (300, 350)
 options['lr_decay_ratio'] = 0.1
 

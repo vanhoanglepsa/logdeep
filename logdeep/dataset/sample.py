@@ -58,14 +58,21 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
     if datatype == 'train':
         data_dir += 'bgl/bgl_train'
     if datatype == 'val':
-        data_dir += 'hdfs/hdfs_test_normal'
-
+        data_dir += 'bgl/bgl_val'
+    sequences = {}
     with open(data_dir, 'r') as f:
         for line in f.readlines():
             num_sessions += 1
+            print(num_sessions)
             line = tuple(map(lambda n: n - 1, map(int, line.strip().split())))
 
             for i in range(len(line) - window_size):
+                seq_str = [str(x) for x in list(line[i:i + window_size + 1])]
+                seq_str = ",".join(seq_str)
+                if seq_str in sequences.keys():
+                    sequences[seq_str] += 1
+                    continue
+                sequences[seq_str] = 1
                 Sequential_pattern = list(line[i:i + window_size])
                 Quantitative_pattern = [0] * 384
                 log_counter = Counter(Sequential_pattern)
