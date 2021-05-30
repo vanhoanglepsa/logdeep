@@ -44,7 +44,7 @@ class Predicter():
         length = 0
         with open(self.data_dir + name, 'r') as f:
             for ln in f.readlines():
-                ln = list(map(lambda n: n - 1, map(int, ln.strip().split())))
+                ln = list(map(lambda n: n, map(int, ln.strip().split())))
                 ln = ln + [-1] * (window_size + 1 - len(ln))
                 hdfs[tuple(ln)] = hdfs.get(tuple(ln), 0) + 1
                 length += 1
