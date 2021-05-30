@@ -63,8 +63,8 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
     with open(data_dir, 'r') as f:
         for line in f.readlines():
             num_sessions += 1
-            print(num_sessions)
-            line = tuple(map(lambda n: n - 1, map(int, line.strip().split())))
+            # print(num_sessions)
+            line = tuple(map(lambda n: n, map(int, line.strip().split())))
 
             for i in range(len(line) - window_size):
                 seq_str = [str(x) for x in list(line[i:i + window_size + 1])]
@@ -81,11 +81,10 @@ def sliding_window(data_dir, datatype, window_size, sample_ratio=1):
                     Quantitative_pattern[key] = log_counter[key]
                 Semantic_pattern = []
                 for event in Sequential_pattern:
-                    if event == 0:
-                        Semantic_pattern.append([-1] * 300)
-                    else:
-                        Semantic_pattern.append(event2semantic_vec[str(event -
-                                                                       1)])
+                    # if event == 0:
+                    #     Semantic_pattern.append([-1] * 300)
+                    # else:
+                    Semantic_pattern.append(event2semantic_vec[str(event)])
                 Sequential_pattern = np.array(Sequential_pattern)[:,
                                                                   np.newaxis]
                 Quantitative_pattern = np.array(
