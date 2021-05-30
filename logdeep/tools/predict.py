@@ -22,20 +22,6 @@ from logdeep.tools.utils import (save_parameters, seed_everything,
                                  train_val_split)
 
 
-def generate(name):
-    window_size = 10
-    hdfs = {}
-    length = 0
-    with open('../data/hdfs/' + name, 'r') as f:
-        for ln in f.readlines():
-            ln = list(map(lambda n: n - 1, map(int, ln.strip().split())))
-            ln = ln + [-1] * (window_size + 1 - len(ln))
-            hdfs[tuple(ln)] = hdfs.get(tuple(ln), 0) + 1
-            length += 1
-    print('Number of sessions({}): {}'.format(name, len(hdfs)))
-    return hdfs, length
-
-
 class Predicter():
     def __init__(self, model, options):
         self.data_dir = options['data_dir']
@@ -52,14 +38,26 @@ class Predicter():
         self.batch_size = options['batch_size']
         self.sequence_length = options['sequence_length']
 
-    def predict_unsupervised(self):
+    def generate(self, name):
+        window_size = self.window_size
+        hdfs = {}
+        length = 0
+        with open(self.data_dir + name, 'r') as f:
+            for ln in f.readlines():
+                ln = list(map(lambda n: n - 1, map(int, ln.strip().split())))
+                ln = ln + [-1] * (window_size + 1 - len(ln))
+                hdfs[tuple(ln)] = hdfs.get(tuple(ln), 0) + 1
+                length += 1
+        print('Number of sessions({}): {}'.format(name, len(hdfs)))
+        return hdfs, length
+
+    def predict_unsupervised(self, normal_fname='hdfs_test_normal', abnormal_fname='hdfs_test_abnormal'):
         model = self.model.to(self.device)
         model.load_state_dict(torch.load(self.model_path)['state_dict'])
         model.eval()
         print('model_path: {}'.format(self.model_path))
-        test_normal_loader, test_normal_length = generate('hdfs_test_normal')
-        test_abnormal_loader, test_abnormal_length = generate(
-            'hdfs_test_abnormal')
+        test_normal_loader, test_normal_length = self.generate(normal_fname)
+        test_abnormal_loader, test_abnormal_length = self.generate(abnormal_fname)
         TP = 0
         FP = 0
         # Test the model

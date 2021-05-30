@@ -51,7 +51,7 @@ options['model_name'] = "loganomaly"
 options['save_dir'] = "../result/loganomaly/"
 
 # Predict
-options['model_path'] = "../result/loganomaly/loganomaly_epoch299.pth"
+options['model_path'] = "../result/loganomaly/loganomaly_bestloss.pth"
 options['num_candidates'] = 9
 
 seed_everything(seed=1234)
@@ -74,7 +74,7 @@ def predict():
                        num_keys=options['num_classes'],
                        seq_len=options['sequence_length'])
     predicter = Predicter(Model, options)
-    predicter.predict_unsupervised()
+    predicter.predict_unsupervised("bgl/bgl_test_normal", "bgl/bgl_test_abnormal")
 
 
 if __name__ == "__main__":
