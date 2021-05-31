@@ -4,8 +4,8 @@ import numpy as np
 import pickle
 
 para = {
-    "window_size": 0.5,
-    "step_size": 0.2,
+    "window_size": 1,
+    "step_size": 1,
     "structured_file": "BGL.log_structured.csv",
     "BGL_sequence_train": "BGL_sequence_train.csv",
     "BGL_sequence_test": "BGL_sequence_test.csv"
@@ -95,65 +95,93 @@ def bgl_sampling(bgl_structured, phase="train"):
     BGL_sequence = pd.DataFrame(columns=['sequence', 'label'])
     BGL_sequence['sequence'] = expanded_event_list
     BGL_sequence['label'] = labels
-    BGL_sequence.to_csv(para["BGL_sequence_{0}".format(phase)], index=None)
+    BGL_sequence.to_csv(para["BGL_sequence_{0}".format(phase)], index=False)
     return BGL_sequence
 
 
 if __name__ == "__main__":
-    # bgl_structured = load_BGL()
-    # n_logs = len(bgl_structured)
-    #
-    # events = bgl_structured["EventTemplate"].values
-    # event_ids = bgl_structured["EventId"].values
-    event_map = {}
+    bgl_structured = load_BGL()
+    n_logs = len(bgl_structured)
+
+    events = bgl_structured["EventTemplate"].values
+    event_ids = bgl_structured["EventId"].values
+    # index_map = {}
     # for i in range(len(events)):
-    #     event_map[events[i]] = event_ids[i]
+    #     index_map[events[i]] = event_ids[i]
     # events = list(set(events))
     # print(len(events))
     events_df = pd.read_csv("../bgl/templates.csv", memory_map=True)
     events_df = events_df.to_dict('records')
+    event_map = {}
     for e in events_df:
         event_map[e['template']] = str(e['id'])
     # events_df['id'] = [i for i in range(len(events))]
     # events_df['template'] = events
     # events_df.to_csv("templates.csv", index=None)
 
-    # ids_map = {}
-    # for i in range(len(events)):
-    #     ids_map[event_map[events[i]]] = i
-    
-    # train_logs = bgl_sampling(bgl_structured[:n_logs * 80 // 100], "train")
-    # train_logs = train_logs.to_dict("records")
+    ids_map = {}
+    for i in range(len(events)):
+        ids_map[event_ids[i]] = event_map[events[i]]
+
+    n_session = 0
+    train_logs = bgl_sampling(bgl_structured[:n_logs * 80 // 100], "train")
+    train_logs = train_logs.to_dict("records")
+    n_session += len(train_logs)
+    with open("bgl_train", mode="w") as f:
+        for log in train_logs:
+            # only train normal logs
+            if log['label'] == 1:
+                continue
+
+            log = log['sequence']
+            if len(log) == 0:
+                continue
+            seq = [ids_map[x] for x in log]
+            seq = " ".join(seq)
+            f.write(seq + "\n")
+
+
+    test_logs = bgl_sampling(bgl_structured[n_logs * 80 // 100:], "test")
+    test_logs = test_logs.to_dict("records")
+    n_session += len(test_logs)
+    normal_test, abnormal_test = [], []
+    for log in test_logs:
+        # only train normal logs
+
+        log_seq = log['sequence']
+        if len(log_seq) == 0:
+            continue
+        seq = [str(ids_map[x]) for x in log_seq]
+        seq = " ".join(seq)
+
+        if log['label'] == 1:
+            abnormal_test.append(seq)
+        else:
+            normal_test.append(seq)
+    print(n_session)
+    with open("bgl_test_normal", mode="w") as f:
+        [f.write(x + "\n") for x in normal_test]
+
+    with open("bgl_test_abnormal", mode="w") as f:
+        [f.write(x + "\n") for x in abnormal_test]
+    # with open("bgl/online_session_train.pkl", mode="rb") as f:
+    #     (normal, abnormal) = pickle.load(f)
     # with open("bgl_train", mode="w") as f:
-    #     for log in train_logs:
-    #         # only train normal logs
-    #         if log['label'] == 1:
-    #             continue
-    #
-    #         log = log['sequence']
-    #         if len(log) == 0:
-    #             continue
-    #         seq = [ids_map[x] for x in log]
+    #     for logs in normal:
+    #         seq = [event_map[x] for x in logs]
     #         seq = " ".join(seq)
     #         f.write(seq + "\n")
-    with open("bgl/online_session_train.pkl", mode="rb") as f:
-        (normal, abnormal) = pickle.load(f)
-    with open("bgl_train", mode="w") as f:
-        for logs in normal:
-            seq = [event_map[x] for x in logs]
-            seq = " ".join(seq)
-            f.write(seq + "\n")
-
-
-    with open("bgl/online_session_test.pkl", mode="rb") as f:
-        (normal, abnormal) = pickle.load(f)
-    with open("bgl_test_normal", mode="w") as f:
-        for logs in normal:
-            seq = [event_map[x] for x in logs]
-            seq = " ".join(seq)
-            f.write(seq + "\n")
-    with open("bgl_test_abnormal", mode="w") as f:
-        for logs in abnormal:
-            seq = [event_map[x] for x in logs]
-            seq = " ".join(seq)
-            f.write(seq + "\n")
+    #
+    #
+    # with open("bgl/online_session_test.pkl", mode="rb") as f:
+    #     (normal, abnormal) = pickle.load(f)
+    # with open("bgl_test_normal", mode="w") as f:
+    #     for logs in normal:
+    #         seq = [event_map[x] for x in logs]
+    #         seq = " ".join(seq)
+    #         f.write(seq + "\n")
+    # with open("bgl_test_abnormal", mode="w") as f:
+    #     for logs in abnormal:
+    #         seq = [event_map[x] for x in logs]
+    #         seq = " ".join(seq)
+    #         f.write(seq + "\n")
