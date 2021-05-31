@@ -6,6 +6,8 @@ import os
 import sys
 import time
 from collections import Counter
+import json
+
 sys.path.append('../../')
 
 import numpy as np
@@ -37,6 +39,24 @@ class Predicter():
         self.semantics = options['semantics']
         self.batch_size = options['batch_size']
         self.sequence_length = options['sequence_length']
+        self.vectorize()
+
+    def vectorize(self):
+        with open(self.data_dir + "bgl/bgl_embeddings.json", "r") as f:
+            self.all_events = json.load(f)
+
+        with open(self.data_dir + "bgl/train_embeddings.json", "r") as f:
+            self.trained_events = json.load(f)
+
+    def matching(self, u):
+        dist = 10000000
+        key = -1
+        for k, v in self.trained_events.items():
+            d = np.linalg.norm(np.array(u) - np.array(v))
+            if d < dist:
+                dist = d
+                key = k
+        return key
 
     def generate(self, name):
         window_size = self.window_size
@@ -45,7 +65,7 @@ class Predicter():
         with open(self.data_dir + name, 'r') as f:
             for ln in f.readlines():
                 ln = list(map(lambda n: n, map(int, ln.strip().split())))
-                ln = ln + [-1] * (window_size + 1 - len(ln))
+                ln = [-1] * (window_size + 1 - len(ln)) + ln
                 hdfs[tuple(ln)] = hdfs.get(tuple(ln), 0) + 1
                 length += 1
         print('Number of sessions({}): {}'.format(name, len(hdfs)))
@@ -64,9 +84,24 @@ class Predicter():
         start_time = time.time()
         with torch.no_grad():
             for line in tqdm(test_normal_loader.keys()):
-                for i in range(len(line) - self.window_size):
+                for i in range(0, len(line) - self.window_size):
                     seq0 = line[i:i + self.window_size]
                     label = line[i + self.window_size]
+                    if label == -1:
+                        print(line)
+                    s_label = str(label)
+                    if s_label not in self.trained_events.keys():
+                        label = int(self.matching(self.all_events[s_label]))
+                    temp_seq = []
+                    for l in seq0:
+                        s_l = str(l)
+                        if s_l in self.trained_events.keys() or l == -1:
+                            temp_seq.append(l)
+                        else:
+                            temp_seq.append(int(self.matching(self.all_events[s_l])))
+
+                    seq0 = temp_seq.copy()
+
                     seq1 = [0] * self.sequence_length
                     log_conuter = Counter(seq0)
                     for key in log_conuter:
@@ -88,6 +123,18 @@ class Predicter():
                 for i in range(len(line) - self.window_size):
                     seq0 = line[i:i + self.window_size]
                     label = line[i + self.window_size]
+                    s_label = str(label)
+                    if s_label not in self.trained_events.keys():
+                        label = int(self.matching(self.all_events[s_label]))
+                    temp_seq = []
+                    for l in seq0:
+                        s_l = str(l)
+                        if s_l in self.trained_events.keys() or l == -1:
+                            temp_seq.append(l)
+                        else:
+                            temp_seq.append(int(self.matching(self.all_events[s_l])))
+
+                    seq0 = temp_seq.copy()
                     seq1 = [0] * self.sequence_length
                     log_conuter = Counter(seq0)
                     for key in log_conuter:
@@ -112,7 +159,7 @@ class Predicter():
         F1 = 2 * P * R / (P + R)
         print(
             'false positive (FP): {}, false negative (FN): {}, Precision: {:.3f}%, Recall: {:.3f}%, F1-measure: {:.3f}%'
-            .format(FP, FN, P, R, F1))
+                .format(FP, FN, P, R, F1))
         print('Finished Predicting')
         elapsed_time = time.time() - start_time
         print('elapsed_time: {}'.format(elapsed_time))
@@ -152,4 +199,4 @@ class Predicter():
         F1 = 2 * P * R / (P + R)
         print(
             'false positive (FP): {}, false negative (FN): {}, Precision: {:.3f}%, Recall: {:.3f}%, F1-measure: {:.3f}%'
-            .format(FP, FN, P, R, F1))
+                .format(FP, FN, P, R, F1))

@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import pickle
+import json
 
 para = {
     "window_size": 1,
@@ -127,16 +128,17 @@ if __name__ == "__main__":
     train_logs = bgl_sampling(bgl_structured[:n_logs * 80 // 100], "train")
     train_logs = train_logs.to_dict("records")
     n_session += len(train_logs)
+    list_events = []
     with open("bgl_train", mode="w") as f:
         for log in train_logs:
             # only train normal logs
+            log_seq = log['sequence']
+            if len(log_seq) == 0:
+                continue
+            seq = [ids_map[x] for x in log_seq]
+            list_events.extend(seq)
             if log['label'] == 1:
                 continue
-
-            log = log['sequence']
-            if len(log) == 0:
-                continue
-            seq = [ids_map[x] for x in log]
             seq = " ".join(seq)
             f.write(seq + "\n")
 
@@ -185,3 +187,18 @@ if __name__ == "__main__":
     #         seq = [event_map[x] for x in logs]
     #         seq = " ".join(seq)
     #         f.write(seq + "\n")
+
+    with open("../bgl/bgl_embeddings.json", "r") as f:
+        embs = json.load(f)
+    print(embs.keys())
+    train_events = {}
+    list_events = list(set(list_events))
+    print(list_events)
+    # print(len(list_events))
+    for k, v in embs.items():
+        # print(k in list_events)
+        if k in list_events:
+            train_events[k] = v
+    print(train_events)
+    with open("train_embeddings.json", "w") as write_file:
+        json.dump(train_events, write_file, indent=4)
