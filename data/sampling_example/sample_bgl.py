@@ -106,23 +106,16 @@ if __name__ == "__main__":
 
     events = bgl_structured["EventTemplate"].values
     event_ids = bgl_structured["EventId"].values
-    # index_map = {}
-    # for i in range(len(events)):
-    #     index_map[events[i]] = event_ids[i]
-    # events = list(set(events))
-    # print(len(events))
     events_df = pd.read_csv("../bgl/templates.csv", memory_map=True)
     events_df = events_df.to_dict('records')
     event_map = {}
     for e in events_df:
         event_map[e['template']] = str(e['id'])
-    # events_df['id'] = [i for i in range(len(events))]
-    # events_df['template'] = events
-    # events_df.to_csv("templates.csv", index=None)
 
     ids_map = {}
-    for i in range(len(events)):
-        ids_map[event_ids[i]] = event_map[events[i]]
+    max_ids = 0
+    # for i in range(len(events)):
+    #     ids_map[event_ids[i]] = event_map[events[i]]
 
     n_session = 0
     train_logs = bgl_sampling(bgl_structured[:n_logs * 80 // 100], "train")
@@ -135,13 +128,19 @@ if __name__ == "__main__":
             log_seq = log['sequence']
             if len(log_seq) == 0:
                 continue
-            seq = [ids_map[x] for x in log_seq]
+            # seq = []
+            for x in log_seq:
+                if x not in ids_map.keys():
+                    max_ids += 1
+                    ids_map[x] = max_ids
+            seq = [str(ids_map[x]) for x in log_seq]
             list_events.extend(seq)
             if log['label'] == 1:
                 continue
             seq = " ".join(seq)
             f.write(seq + "\n")
 
+    print(max_ids)
 
     test_logs = bgl_sampling(bgl_structured[n_logs * 80 // 100:], "test")
     test_logs = test_logs.to_dict("records")
@@ -153,6 +152,11 @@ if __name__ == "__main__":
         log_seq = log['sequence']
         if len(log_seq) == 0:
             continue
+
+        for x in log_seq:
+            if x not in ids_map.keys():
+                max_ids += 1
+                ids_map[x] = max_ids
         seq = [str(ids_map[x]) for x in log_seq]
         seq = " ".join(seq)
 
@@ -166,39 +170,18 @@ if __name__ == "__main__":
 
     with open("bgl_test_abnormal", mode="w") as f:
         [f.write(x + "\n") for x in abnormal_test]
-    # with open("bgl/online_session_train.pkl", mode="rb") as f:
-    #     (normal, abnormal) = pickle.load(f)
-    # with open("bgl_train", mode="w") as f:
-    #     for logs in normal:
-    #         seq = [event_map[x] for x in logs]
-    #         seq = " ".join(seq)
-    #         f.write(seq + "\n")
-    #
-    #
-    # with open("bgl/online_session_test.pkl", mode="rb") as f:
-    #     (normal, abnormal) = pickle.load(f)
-    # with open("bgl_test_normal", mode="w") as f:
-    #     for logs in normal:
-    #         seq = [event_map[x] for x in logs]
-    #         seq = " ".join(seq)
-    #         f.write(seq + "\n")
-    # with open("bgl_test_abnormal", mode="w") as f:
-    #     for logs in abnormal:
-    #         seq = [event_map[x] for x in logs]
-    #         seq = " ".join(seq)
-    #         f.write(seq + "\n")
 
-    with open("../bgl/bgl_embeddings.json", "r") as f:
-        embs = json.load(f)
-    print(embs.keys())
-    train_events = {}
-    list_events = list(set(list_events))
-    print(list_events)
-    # print(len(list_events))
-    for k, v in embs.items():
-        # print(k in list_events)
-        if k in list_events:
-            train_events[k] = v
-    print(train_events)
-    with open("train_embeddings.json", "w") as write_file:
-        json.dump(train_events, write_file, indent=4)
+    # with open("../bgl/bgl_embeddings.json", "r") as f:
+    #     embs = json.load(f)
+    # print(embs.keys())
+    # train_events = {}
+    # list_events = list(set(list_events))
+    # # print(list_events)
+    # # print(len(list_events))
+    # for k, v in embs.items():
+    #     # print(k in list_events)
+    #     if k in list_events:
+    #         train_events[k] = v
+    # print(train_events)
+    # with open("train_embeddings.json", "w") as write_file:
+    #     json.dump(train_events, write_file, indent=4)

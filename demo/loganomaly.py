@@ -42,7 +42,7 @@ options['accumulation_step'] = 1
 
 options['optimizer'] = 'adam'
 options['lr'] = 0.001
-options['max_epoch'] = 100
+options['max_epoch'] = 300
 options['lr_step'] = (300, 350)
 options['lr_decay_ratio'] = 0.1
 
