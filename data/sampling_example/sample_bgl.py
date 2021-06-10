@@ -6,7 +6,7 @@ import json
 
 para = {
     "window_size": 1,
-    "step_size": 1,
+    "step_size": 0.5,
     "structured_file": "BGL.log_structured.csv",
     "BGL_sequence_train": "BGL_sequence_train.csv",
     "BGL_sequence_test": "BGL_sequence_test.csv"
